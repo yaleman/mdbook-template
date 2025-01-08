@@ -122,7 +122,7 @@ jobs:
           fi
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BINARY }}-${{ matrix.build }}
           path: ${{ steps.upload-artifact.outputs.name }}
