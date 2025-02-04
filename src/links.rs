@@ -1,21 +1,21 @@
+use fancy_regex::{CaptureMatches, Captures, Regex};
+use mdbook::errors::Result;
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-
-use fancy_regex::{CaptureMatches, Captures, Regex};
-use lazy_static::lazy_static;
-use mdbook::errors::Result;
 
 use crate::FileReader;
 
 const ESCAPE_CHAR: char = '\\';
 const LINE_BREAKS: &[char] = &['\n', '\r'];
 
-lazy_static! {
-    // https://stackoverflow.com/questions/22871602/optimizing-regex-to-fine-key-value-pairs-space-delimited
-    static ref TEMPLATE_ARGS: Regex = Regex::new(r"(?<=\s|\A)([^\s=]+)=(.*?)(?=(?:\s[^\s=]+=|$))").unwrap();
+// https://stackoverflow.com/questions/22871602/optimizing-regex-to-fine-key-value-pairs-space-delimited
+static TEMPLATE_ARGS: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(?<=\s|\A)([^\s=]+)=(.*?)(?=(?:\s[^\s=]+=|$))").unwrap());
 
-    // r"(?x)\\\{\{\#.*\}\}|\{\{\s*\#(template)\s+([\S]+)\s*\}\}|\{\{\s*\#(template)\s+([\S]+)\s+([^}]+)\}\}"
-    static ref TEMPLATE: Regex = Regex::new(
+// r"(?x)\\\{\{\#.*\}\}|\{\{\s*\#(template)\s+([\S]+)\s*\}\}|\{\{\s*\#(template)\s+([\S]+)\s+([^}]+)\}\}"
+static TEMPLATE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
         r"(?x)                              # enable insignificant whitespace mode
 
         \\\{\{                              # escaped link opening parens
@@ -39,12 +39,14 @@ lazy_static! {
         ([\S]+)                             # relative path to template file
         \s+                                 # separating whitespace(s)
         ([^}]+)                             # get all template arguments
-        \}\}                                # link closing parens"
+        \}\}                                # link closing parens",
     )
-    .unwrap();
+    .unwrap()
+});
 
-    // r"(?x)\\\[\[.*\]\]|\[\[\s*\#([\S]+)\s*\]\]|\[\[\s*\#([\S]+)\s+([^]]+)\]\]"
-    static ref ARGS: Regex = Regex::new(
+// r"(?x)\\\[\[.*\]\]|\[\[\s*\#([\S]+)\s*\]\]|\[\[\s*\#([\S]+)\s+([^]]+)\]\]"
+static ARGS: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
         r"(?x)                                  # enable insignificant whitespace mode
 
         \\\[\[                                  # escaped link opening square brackets
@@ -64,10 +66,10 @@ lazy_static! {
         \#([\S]+)                               # arg name
         \s+                                     # optional separating whitespace(s)
         ([^]]+)                                 # match everything after space
-        \]\]                                    # link closing parens"
+        \]\]                                    # link closing parens",
     )
-    .unwrap();
-}
+    .unwrap()
+});
 
 #[derive(PartialEq, Debug)]
 pub(crate) struct Link<'a> {
