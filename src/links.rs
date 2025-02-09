@@ -1,8 +1,8 @@
 use fancy_regex::{CaptureMatches, Captures, Regex};
 use mdbook::errors::Result;
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 use crate::FileReader;
 
@@ -10,11 +10,11 @@ const ESCAPE_CHAR: char = '\\';
 const LINE_BREAKS: &[char] = &['\n', '\r'];
 
 // https://stackoverflow.com/questions/22871602/optimizing-regex-to-fine-key-value-pairs-space-delimited
-static TEMPLATE_ARGS: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?<=\s|\A)([^\s=]+)=(.*?)(?=(?:\s[^\s=]+=|$))").unwrap());
+static TEMPLATE_ARGS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?<=\s|\A)([^\s=]+)=(.*?)(?=(?:\s[^\s=]+=|$))").unwrap());
 
 // r"(?x)\\\{\{\#.*\}\}|\{\{\s*\#(template)\s+([\S]+)\s*\}\}|\{\{\s*\#(template)\s+([\S]+)\s+([^}]+)\}\}"
-static TEMPLATE: Lazy<Regex> = Lazy::new(|| {
+static TEMPLATE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?x)                              # enable insignificant whitespace mode
 
@@ -45,7 +45,7 @@ static TEMPLATE: Lazy<Regex> = Lazy::new(|| {
 });
 
 // r"(?x)\\\[\[.*\]\]|\[\[\s*\#([\S]+)\s*\]\]|\[\[\s*\#([\S]+)\s+([^]]+)\]\]"
-static ARGS: Lazy<Regex> = Lazy::new(|| {
+static ARGS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?x)                                  # enable insignificant whitespace mode
 
