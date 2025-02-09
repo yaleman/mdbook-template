@@ -1255,7 +1255,6 @@ dependencies = [
  "fancy-regex",
  "log",
  "mdbook",
- "once_cell",
  "semver",
  "serde_json",
 ]
